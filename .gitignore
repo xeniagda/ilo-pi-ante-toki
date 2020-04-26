@@ -1,2 +1,4 @@
-load-data/select-langs
+**/select-langs
+**/tokens
+**/*.dSYM
 **/__pycache__
