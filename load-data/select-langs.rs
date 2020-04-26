@@ -8,6 +8,8 @@
 // secondary/auxiliary sentence and the end of it.
 // In the binary format, each number is encoded as a 32-bit unsigned integer
 
+// mod tokens;
+
 use std::io::{Write, Result, BufWriter, BufReader, BufRead};
 use std::fs::File;
 use std::env::var;
@@ -182,28 +184,24 @@ impl Sentences {
         Ok((n_read, n_wrong))
     }
 
-    fn write_sentences<F: Write>(&self, file: &mut F) -> Result<HashMap<u32, (usize, usize)>> {
-        let mut id_offset_size = HashMap::new();
+    fn write_sentences<F: Write>(&self, file: &mut F, from: u8) -> Result<HashMap<u32, (usize, usize)>> {
+        let mut id_offset_size: HashMap<u32, _> = HashMap::new();
         let mut offset = 0;
 
-        let ids: HashSet<u32> = self.prim_language.keys().cloned().collect();
-        let ids: HashSet<u32> = ids.union(&self.sec_language.keys().cloned().collect()).cloned().collect();
-        let ids: HashSet<u32> = ids.union(&self.aux_language.keys().cloned().collect()).cloned().collect();
+        let sentences = match from {
+            0 => &self.prim_language,
+            1 => &self.sec_language,
+            2 => &self.aux_language,
+            _ => unimplemented!(),
+        };
 
-        for id in ids {
-            let sentence =
-                match (self.prim_language.get(&id), self.sec_language.get(&id), self.aux_language.get(&id)) {
-                    (Some(x), _, _) => x,
-                    (_, Some(x), _) => x,
-                    (_, _, Some(x)) => x,
-                    _ => unreachable!(),
-                };
-
+        for (&id, sentence) in sentences {
             id_offset_size.insert(id, (offset, sentence.len()));
 
             file.write(sentence)?;
             offset += sentence.len();
         }
+
         Ok(id_offset_size)
     }
 
@@ -245,10 +243,24 @@ fn main() -> Result<()> {
 
     println!("After filter {:?}/{:?}/{:?}", sentences.prim_language.len(), sentences.sec_language.len(), sentences.aux_language.len());
 
-    println!("Writing sentences");
-    let mut sentence_output = BufWriter::new(File::create(get_cache_path("sentences.txt"))?);
-    let meta = sentences.write_sentences(&mut sentence_output)?;
-    sentence_output.flush()?;
+    println!("Writing primary sentences");
+    let mut prim_output = BufWriter::new(File::create(get_cache_path("sentences-prim.txt"))?);
+    let mut meta = sentences.write_sentences(&mut prim_output, 0)?;
+    prim_output.flush()?;
+
+    println!("Writing secondary sentences");
+    let mut sec_output = BufWriter::new(File::create(get_cache_path("sentences-sec.txt"))?);
+    let sec_meta = sentences.write_sentences(&mut sec_output, 1)?;
+    sec_output.flush()?;
+
+    meta.extend(sec_meta.into_iter());
+
+    println!("Writing auxiliary sentences");
+    let mut aux_output = BufWriter::new(File::create(get_cache_path("sentences-aux.txt"))?);
+    let aux_meta = sentences.write_sentences(&mut aux_output, 2)?;
+    sec_output.flush()?;
+
+    meta.extend(aux_meta.into_iter());
 
     println!("Writing secondary links");
     let mut links_output = BufWriter::new(File::create(get_cache_path("sec-links.txt"))?);
