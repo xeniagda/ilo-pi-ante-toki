@@ -5,13 +5,13 @@ use std::fmt::Debug;
 use std::io::Write;
 
 #[derive(Debug, Copy, Clone)]
-enum Gram<I> {
+pub enum Gram<I> {
     Orig(I),
     Composition(usize, usize),
 }
 
 // Retuns the tokenized text, along with a list of decompositions
-fn encode_into_ngrams<I: Debug + Copy + Eq + Hash, F: Fn(&I) -> bool>(inp: Vec<I>, rel_lim: f64, can_pair: F) -> (Vec<usize>, Vec<Gram<I>>) {
+pub fn encode_into_ngrams<I: Debug + Copy + Eq + Hash, F: Fn(&I) -> bool>(inp: Vec<I>, rel_lim: f64, can_pair: F) -> (Vec<usize>, Vec<Gram<I>>) {
     // Convert the text into orig tokens
 
     let inp_len = inp.len() as f64;
@@ -140,7 +140,7 @@ fn decompose_sequence<I: Eq + Hash + Copy>(mut tokens: Vec<usize>, grams: &[Gram
 // offset: 0x0 0x1 0x2 0x3 0x4 0x5 0x6 0x7 0x8
 //  value: 0x0 -------a------- -------b-------
 
-fn encode_grams<F: Write>(out: &mut F, grams: Vec<Gram<char>>) -> std::io::Result<()> {
+pub fn encode_grams<F: Write>(out: &mut F, grams: Vec<Gram<char>>) -> std::io::Result<()> {
     // Assert topoorder
     for (i, gram) in grams.iter().enumerate() {
         match gram {
@@ -173,6 +173,7 @@ fn encode_grams<F: Write>(out: &mut F, grams: Vec<Gram<char>>) -> std::io::Resul
     Ok(())
 }
 
+#[allow(unused)]
 fn main() -> std::io::Result<()> {
     use std::io::Read;
 
@@ -183,7 +184,7 @@ fn main() -> std::io::Result<()> {
     let inp = String::from_utf8_lossy(&buf).chars().collect();
 
     println!("Encoding");
-    let (stream, grams) = encode_into_ngrams(inp, 0.001, |&ch| true);
+    let (stream, grams) = encode_into_ngrams(inp, 0.001, |&_ch| true);
 
     // println!("{:?}", decompose_sequence(stream, &grams));
     for i in 0..grams.len() {

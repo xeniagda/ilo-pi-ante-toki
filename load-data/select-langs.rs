@@ -8,16 +8,19 @@
 // secondary/auxiliary sentence and the end of it.
 // In the binary format, each number is encoded as a 32-bit unsigned integer
 
-// mod tokens;
+mod tokens;
 
-use std::io::{Write, Result, BufWriter, BufReader, BufRead};
+use std::io::{Write, Result, BufWriter, BufReader, BufRead, Error, ErrorKind};
 use std::fs::File;
 use std::env::var;
 use std::collections::{HashMap, HashSet};
+use std::convert::TryInto;
 
 const PRIM_LANGUAGE: &str = "eng";
 const SEC_LANGUAGE: &str = "toki";
 const AUX_LANGUAGE: &str = "spa";
+
+const REL_LIM: f64 = 0.005;
 
 // Described above
 // TODO: Either make this a compile-time flag, or a CLI-argument
@@ -46,23 +49,25 @@ fn write_number_to_file<F: Write>(file: &mut F, number: u32) -> Result<()> {
 }
 
 #[derive(Debug)]
-struct Sentences {
-    prim_language: HashMap<u32, Vec<u8>>,
-    sec_language: HashMap<u32, Vec<u8>>,
-    aux_language: HashMap<u32, Vec<u8>>,
+struct Translation<SentenceContent> {
+    prim_language: HashMap<u32, SentenceContent>,
+    sec_language: HashMap<u32, SentenceContent>,
+    aux_language: HashMap<u32, SentenceContent>,
     links: HashSet<(u32, u32)>, // Always (prim, sec) or (prim, aux)
 }
 
-impl Sentences {
+impl <SentenceContent> Translation<SentenceContent> {
     fn new() -> Self {
-        Sentences {
+        Translation {
             prim_language: HashMap::new(),
             sec_language: HashMap::new(),
             aux_language: HashMap::new(),
             links: HashSet::new(),
         }
     }
+}
 
+impl Translation<Vec<u8>> {
     fn consume_sentences<F: BufRead>(&mut self, mut file: F) -> Result<usize> {
         let mut counter = 0;
 
@@ -184,27 +189,42 @@ impl Sentences {
         Ok((n_read, n_wrong))
     }
 
-    fn write_sentences<F: Write>(&self, file: &mut F, from: u8) -> Result<HashMap<u32, (usize, usize)>> {
-        let mut id_offset_size: HashMap<u32, _> = HashMap::new();
-        let mut offset = 0;
+    fn stringify(self) -> Result<Translation<String>> {
+        let prim_language =
+            self.prim_language
+            .into_iter()
+            .map(|(k, v)| {
+                let st = String::from_utf8(v).map_err(|_| Error::new(ErrorKind::InvalidData, "Invalid UTF-8!"))?;
+                Ok((k, st))
+            })
+            .collect::<Result<HashMap<_, _>>>()?;
 
-        let sentences = match from {
-            0 => &self.prim_language,
-            1 => &self.sec_language,
-            2 => &self.aux_language,
-            _ => unimplemented!(),
-        };
+        let sec_language =
+            self.sec_language
+            .into_iter()
+            .map(|(k, v)| {
+                let st = String::from_utf8(v).map_err(|_| Error::new(ErrorKind::InvalidData, "Invalid UTF-8!"))?;
+                Ok((k, st))
+            })
+            .collect::<Result<HashMap<_, _>>>()?;
 
-        for (&id, sentence) in sentences {
-            id_offset_size.insert(id, (offset, sentence.len()));
+        let aux_language =
+            self.aux_language
+            .into_iter()
+            .map(|(k, v)| {
+                let st = String::from_utf8(v).map_err(|_| Error::new(ErrorKind::InvalidData, "Invalid UTF-8!"))?;
+                Ok((k, st))
+            })
+            .collect::<Result<HashMap<_, _>>>()?;
 
-            file.write(sentence)?;
-            offset += sentence.len();
-        }
-
-        Ok(id_offset_size)
+        Ok(Translation {
+            prim_language, sec_language, aux_language,
+            links: self.links,
+        })
     }
+}
 
+impl <T> Translation<T> {
     fn write_links<F: Write>(&self, file: &mut F, id_offset_size: &HashMap<u32, (usize, usize)>, write_secondary: bool) -> Result<()> {
         for &(prim_id, other_id) in &self.links {
             match (self.sec_language.contains_key(&other_id), write_secondary) {
@@ -224,6 +244,130 @@ impl Sentences {
     }
 }
 
+fn gramify_sentences(sents: HashMap<u32, String>) -> (HashMap<u32, Vec<usize>>, Gramophone) {
+    let gram = Gramophone::from_word_iter(
+        sents
+            .values()
+            .map(|x| x.chars())
+    );
+    let grammed_sents =
+        sents
+        .into_iter()
+        .map(|(k, sent)| (k, gram.encode_text(sent.chars())))
+        .collect::<HashMap<_, _>>();
+
+    (grammed_sents, gram)
+}
+
+impl Translation<String> {
+    fn gramify(self) -> (Translation<Vec<usize>>, Gramophone, Gramophone, Gramophone) {
+        let (prim_language, prim_gram) = gramify_sentences(self.prim_language);
+        let (sec_language, sec_gram) = gramify_sentences(self.sec_language);
+        let (aux_language, aux_gram) = gramify_sentences(self.aux_language);
+
+        let trans = Translation {
+            prim_language, sec_language, aux_language,
+            links: self.links,
+        };
+
+        (trans, prim_gram, sec_gram, aux_gram)
+    }
+}
+
+impl Translation<Vec<usize>> {
+    fn write_sentences<F: Write>(&self, file: &mut F, from: u8) -> Result<HashMap<u32, (usize, usize)>> {
+        let mut id_offset_size: HashMap<u32, _> = HashMap::new();
+        let mut offset = 0;
+
+        let sentences = match from {
+            0 => &self.prim_language,
+            1 => &self.sec_language,
+            2 => &self.aux_language,
+            _ => unimplemented!(),
+        };
+
+        for (&id, sentence) in sentences {
+            id_offset_size.insert(id, (offset, sentence.len()));
+
+
+            for &point in sentence {
+                let point_u16: u16 = point.try_into().map_err(|_| Error::new(ErrorKind::InvalidData, format!("{} is too large to fit in a u16!", point)))?;
+                file.write(&point_u16.to_le_bytes())?;
+            }
+            offset += sentence.len() * 2;
+        }
+
+        Ok(id_offset_size)
+    }
+}
+
+struct Gramophone {
+    grams: Vec<tokens::Gram<char>>,
+    i2idx: HashMap<char, usize>,
+}
+
+impl Gramophone {
+    // Assumes no zeros in iter
+    fn from_word_iter<
+            I: IntoIterator<Item=J>,
+            J: IntoIterator<Item=char>,
+        >(iter: I) -> Gramophone {
+        let mut inp = Vec::new();
+        for word in iter {
+            inp.extend(word);
+            inp.push('\0');
+        }
+
+        let (_, grams) = tokens::encode_into_ngrams(inp, REL_LIM, |&x| x != '\0');
+
+        let mut i2idx = HashMap::new();
+        for (idx, gram) in grams.iter().enumerate() {
+            if let &tokens::Gram::Orig(i) = gram {
+                i2idx.insert(i, idx);
+            }
+        }
+
+        Gramophone {
+            grams,
+            i2idx,
+        }
+    }
+
+    fn encode_text<I: IntoIterator<Item=char>>(&self, text: I) -> Vec<usize> {
+        let mut tokens = Vec::new();
+        for ch in text {
+            tokens.push(*self.i2idx.get(&ch).expect(&format!("no such char: {:?}", ch)));
+        }
+
+        for (i, gram) in self.grams.iter().enumerate() {
+            let (a, b) = if let &tokens::Gram::Composition(a, b) = gram {
+                (a, b)
+            } else {
+                continue;
+            };
+
+            let mut contracted_tokens = Vec::new();
+            let mut at = 0;
+            while at < tokens.len() {
+                let here = tokens[at];
+                let next = tokens.get(at + 1);
+
+                if here == a && next == Some(&b) {
+                    contracted_tokens.push(i);
+                    at += 2;
+                } else {
+                    contracted_tokens.push(here);
+                    at += 1;
+                }
+            }
+
+            tokens = contracted_tokens;
+        }
+
+        tokens
+    }
+}
+
 fn get_cache_path(filename: &str) -> String {
     format!("{}/.cache/ilo-pi-ante-toki/{}", var("HOME").expect("no home"), filename)
 }
@@ -232,44 +376,65 @@ fn main() -> Result<()> {
     let sentence_file = BufReader::new(File::open(get_cache_path("raw/sentences.tsv"))?);
     let links_file = BufReader::new(File::open(get_cache_path("raw/links.tsv"))?);
 
-    let mut sentences = Sentences::new();
+    let mut sentences = Translation::new();
 
-    println!("Loading");
+    println!("Consuming sentences");
     sentences.consume_sentences(sentence_file)?;
     println!("Loaded {:?}/{:?}/{:?}", sentences.prim_language.len(), sentences.sec_language.len(), sentences.aux_language.len());
 
+    println!("Consuming links");
     let (read, wrong) = sentences.consume_links(links_file, true)?;
     println!("Loaded {:?} links ({:?} were wrong)", read, wrong);
 
     println!("After filter {:?}/{:?}/{:?}", sentences.prim_language.len(), sentences.sec_language.len(), sentences.aux_language.len());
 
+    println!("Stringifying");
+    let sent_string = sentences.stringify()?;
+    println!("Gramifying");
+    let (sent_ngram, prim_gram, sec_gram, aux_gram) = sent_string.gramify();
+
+    println!("Writing primary ngrams");
+    let mut prim_ngrams = BufWriter::new(File::create(get_cache_path("ngrams-prim.bin"))?);
+    tokens::encode_grams(&mut prim_ngrams, prim_gram.grams)?;
+    prim_ngrams.flush()?;
+
+    println!("Writing secondary ngrams");
+    let mut sec_ngrams = BufWriter::new(File::create(get_cache_path("ngrams-sec.bin"))?);
+    tokens::encode_grams(&mut sec_ngrams, sec_gram.grams)?;
+    sec_ngrams.flush()?;
+
+    println!("Writing auxiliary ngrams");
+    let mut aux_ngrams = BufWriter::new(File::create(get_cache_path("ngrams-aux.bin"))?);
+    tokens::encode_grams(&mut aux_ngrams, aux_gram.grams)?;
+    aux_ngrams.flush()?;
+
     println!("Writing primary sentences");
-    let mut prim_output = BufWriter::new(File::create(get_cache_path("sentences-prim.txt"))?);
-    let mut meta = sentences.write_sentences(&mut prim_output, 0)?;
+    let mut prim_output = BufWriter::new(File::create(get_cache_path("sentences-prim.bin"))?);
+    let mut meta = sent_ngram.write_sentences(&mut prim_output, 0)?;
     prim_output.flush()?;
 
     println!("Writing secondary sentences");
-    let mut sec_output = BufWriter::new(File::create(get_cache_path("sentences-sec.txt"))?);
-    let sec_meta = sentences.write_sentences(&mut sec_output, 1)?;
+    let mut sec_output = BufWriter::new(File::create(get_cache_path("sentences-sec.bin"))?);
+    let sec_meta = sent_ngram.write_sentences(&mut sec_output, 1)?;
     sec_output.flush()?;
 
     meta.extend(sec_meta.into_iter());
 
     println!("Writing auxiliary sentences");
-    let mut aux_output = BufWriter::new(File::create(get_cache_path("sentences-aux.txt"))?);
-    let aux_meta = sentences.write_sentences(&mut aux_output, 2)?;
+    let mut aux_output = BufWriter::new(File::create(get_cache_path("sentences-aux.bin"))?);
+    let aux_meta = sent_ngram.write_sentences(&mut aux_output, 2)?;
     sec_output.flush()?;
 
     meta.extend(aux_meta.into_iter());
 
     println!("Writing secondary links");
-    let mut links_output = BufWriter::new(File::create(get_cache_path("sec-links.txt"))?);
-    sentences.write_links(&mut links_output, &meta, true)?;
+    let mut links_output = BufWriter::new(File::create(get_cache_path("sec-links.bin"))?);
+    sent_ngram.write_links(&mut links_output, &meta, true)?;
     links_output.flush()?;
 
     println!("Writing auxiliary links");
-    let mut links_output = BufWriter::new(File::create(get_cache_path("aux-links.txt"))?);
-    sentences.write_links(&mut links_output, &meta, false)?;
+    let mut links_output = BufWriter::new(File::create(get_cache_path("aux-links.bin"))?);
+    sent_ngram.write_links(&mut links_output, &meta, false)?;
     links_output.flush()?;
 
     println!("Done!");
