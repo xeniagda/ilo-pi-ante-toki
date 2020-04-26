@@ -39,7 +39,7 @@ pub fn encode_into_ngrams<I: Debug + Copy + Eq + Hash, F: Fn(&I) -> bool>(inp: V
     // println!("Tokens: {:?}", tokens);
     // println!("Grams: {:?}", grams);
 
-    loop {
+    for _ in 0..u16::MAX - tokens.len() as u16 {
         let pair_freq = get_pair_freq(&tokens, &skips);
         let (&commonest_pair, &freq) = if let Some(x) = pair_freq.iter().max_by_key(|(_, &count)| count) {
             x

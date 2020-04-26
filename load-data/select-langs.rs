@@ -20,7 +20,7 @@ const PRIM_LANGUAGE: &str = "eng";
 const SEC_LANGUAGE: &str = "toki";
 const AUX_LANGUAGE: &str = "spa";
 
-const REL_LIM: f64 = 0.005;
+const REL_LIM: f64 = 0.001;
 
 // Described above
 // TODO: Either make this a compile-time flag, or a CLI-argument
@@ -289,7 +289,6 @@ impl Translation<Vec<usize>> {
         for (&id, sentence) in sentences {
             id_offset_size.insert(id, (offset, sentence.len()));
 
-
             for &point in sentence {
                 let point_u16: u16 = point.try_into().map_err(|_| Error::new(ErrorKind::InvalidData, format!("{} is too large to fit in a u16!", point)))?;
                 file.write(&point_u16.to_le_bytes())?;
@@ -318,7 +317,7 @@ impl Gramophone {
             inp.push('\0');
         }
 
-        let (_, grams) = tokens::encode_into_ngrams(inp, REL_LIM, |&x| x != '\0');
+        let (_, grams) = tokens::encode_into_ngrams(inp, REL_LIM, |&x| x != '\0' && x != ' ');
 
         let mut i2idx = HashMap::new();
         for (idx, gram) in grams.iter().enumerate() {
@@ -392,6 +391,7 @@ fn main() -> Result<()> {
     let sent_string = sentences.stringify()?;
     println!("Gramifying");
     let (sent_ngram, prim_gram, sec_gram, aux_gram) = sent_string.gramify();
+    println!("{} / {} / {} grams", prim_gram.grams.len(), sec_gram.grams.len(), aux_gram.grams.len());
 
     println!("Writing primary ngrams");
     let mut prim_ngrams = BufWriter::new(File::create(get_cache_path("ngrams-prim.bin"))?);
