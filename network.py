@@ -189,9 +189,9 @@ AUX_DECODER_SAVE = "save/dec-aux.pth"
 
 
 def load_from_save():
-    enc = Encoder(PRIM_GL.n_tokens(), 20, 20)
-    sec_dec = Decoder(SEC_GL.n_tokens(), 20, 40, 80)
-    aux_dec = Decoder(SEC_GL.n_tokens(), 20, 40, 80)
+    enc = Encoder(PRIM_GL.n_tokens(), 400, 100)
+    sec_dec = Decoder(SEC_GL.n_tokens(), 400, 200, 30)
+    aux_dec = Decoder(SEC_GL.n_tokens(), 400, 200, 30)
 
     if os.path.isfile(ENCODER_SAVE) \
        and os.path.isfile(SEC_DECODER_SAVE) \

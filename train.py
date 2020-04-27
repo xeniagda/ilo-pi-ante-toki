@@ -8,6 +8,7 @@ import torch.nn.functional as F
 from sentence_parser import STYPE_SEC, STYPE_AUX, PRIM_GL, SEC_GL, AUX_GL
 from network import device, Encoder, Decoder, into_one_hot, generate_batch, load_from_save, save
 
+BATCH_SIZE = 512
 
 def display_tokens(toklist, gl):
     out = ""
@@ -48,7 +49,7 @@ if __name__ == "__main__":
             print(hex(batch_nr)[2:], end=" ")
             for name, losses, dec, stype in [sec_info, aux_info]:
                 print(name, end=":")
-                xs, ys = generate_batch(2048, stype)
+                xs, ys = generate_batch(BATCH_SIZE, stype)
 
                 print("l={:2d}/{:2d};".format(xs.size(1), ys.size(1)), end=" ", flush=True)
 
