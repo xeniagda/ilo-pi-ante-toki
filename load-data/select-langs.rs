@@ -20,7 +20,7 @@ const PRIM_LANGUAGE: &str = "eng";
 const SEC_LANGUAGE: &str = "toki";
 const AUX_LANGUAGE: &str = "spa";
 
-const REL_LIM: f64 = 0.001;
+const REL_LIM: f64 = 0.0001;
 
 // Described above
 // TODO: Either make this a compile-time flag, or a CLI-argument
@@ -317,7 +317,7 @@ impl Gramophone {
             inp.push('\0');
         }
 
-        let (_, grams) = tokens::encode_into_ngrams(inp, REL_LIM, |&x| x != '\0' && x != ' ');
+        let (_, grams) = tokens::encode_into_ngrams(inp, REL_LIM, |&x| x != '\0' && x.is_alphabetic());
 
         let mut i2idx = HashMap::new();
         for (idx, gram) in grams.iter().enumerate() {
