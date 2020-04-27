@@ -56,6 +56,10 @@ bpe_list = [Orig, Composition]
 class GramList:
     def __init__(self, gram_list):
         self.gram_list = gram_list
+        self.gram_list.append(Orig("<EOF>"))
+
+    def n_tokens(self):
+        return len(self.gram_list)
 
     def from_file(inp_file):
         gram_list = []
@@ -170,19 +174,20 @@ def load_one_pair(other_stype):
     p_start, p_len, o_start, o_len = struct.unpack("<4I", links_file.read(4 * 4))
 
     sents_prim.seek(p_start)
-    prim_sent = struct.unpack(f"<{p_len // 2}H", sents_prim.read(p_len))
+    prim_sent = list(struct.unpack(f"<{p_len // 2}H", sents_prim.read(p_len)))
 
     sents_other.seek(o_start)
-    other_sent = struct.unpack(f"<{o_len // 2}H", sents_other.read(o_len))
+    other_sent = list(struct.unpack(f"<{o_len // 2}H", sents_other.read(o_len)))
 
-    return prim_sent, other_sent
+    return prim_sent + [-1], other_sent + [-1]
+
+PRIM_GL = GramList.from_file(open(os.path.expanduser("~/.cache/ilo-pi-ante-toki/ngrams-prim.bin"), "rb"))
+SEC_GL = GramList.from_file(open(os.path.expanduser("~/.cache/ilo-pi-ante-toki/ngrams-sec.bin"), "rb"))
+AUX_GL = GramList.from_file(open(os.path.expanduser("~/.cache/ilo-pi-ante-toki/ngrams-aux.bin"), "rb"))
 
 if __name__ == "__main__":
-    prim_gl = GramList.from_file(open(os.path.expanduser("~/.cache/ilo-pi-ante-toki/ngrams-prim.bin"), "rb"))
-    sec_gl = GramList.from_file(open(os.path.expanduser("~/.cache/ilo-pi-ante-toki/ngrams-sec.bin"), "rb"))
-
     prim, sec = load_one_pair(STYPE_SEC)
 
-    print("/".join(prim_gl.bpe_to_str([x]) for x in prim))
+    print("/".join(PRIM_GL.bpe_to_str([x]) for x in prim))
 
-    print("/".join(sec_gl.bpe_to_str([x]) for x in sec))
+    print("/".join(SEC_GL.bpe_to_str([x]) for x in sec))
