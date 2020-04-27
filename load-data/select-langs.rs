@@ -313,7 +313,7 @@ impl Gramophone {
         >(iter: I) -> Gramophone {
         let mut inp = Vec::new();
         for word in iter {
-            inp.extend(word);
+            inp.extend(word.into_iter().flat_map(char::to_lowercase));
             inp.push('\0');
         }
 
@@ -334,7 +334,7 @@ impl Gramophone {
 
     fn encode_text<I: IntoIterator<Item=char>>(&self, text: I) -> Vec<usize> {
         let mut tokens = Vec::new();
-        for ch in text {
+        for ch in text.into_iter().flat_map(char::to_lowercase) {
             tokens.push(*self.i2idx.get(&ch).expect(&format!("no such char: {:?}", ch)));
         }
 
@@ -392,6 +392,7 @@ fn main() -> Result<()> {
     println!("Gramifying");
     let (sent_ngram, prim_gram, sec_gram, aux_gram) = sent_string.gramify();
     println!("{} / {} / {} grams", prim_gram.grams.len(), sec_gram.grams.len(), aux_gram.grams.len());
+
 
     println!("Writing primary ngrams");
     let mut prim_ngrams = BufWriter::new(File::create(get_cache_path("ngrams-prim.bin"))?);
