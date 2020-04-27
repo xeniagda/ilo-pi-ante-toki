@@ -8,7 +8,7 @@ import torch.nn.functional as F
 from sentence_parser import STYPE_SEC, STYPE_AUX, PRIM_GL, SEC_GL, AUX_GL
 from network import device, Encoder, Decoder, into_one_hot, generate_batch, load_from_save, save
 
-BATCH_SIZE = 512
+BATCH_SIZE = 48
 
 def display_tokens(toklist, gl):
     out = ""
@@ -64,7 +64,8 @@ if __name__ == "__main__":
                 print("d", end="", flush=True)
 
                 pred = y_hat.argmax(axis=2)
-                acc = (pred == ys).type(torch.FloatTensor).mean()
+                is_not_eof = ys != -1
+                acc = ((pred == ys) * is_not_eof).type(torch.FloatTensor).sum() / (is_not_eof.type(torch.FloatTensor).sum())
 
                 print("a", end=" ", flush=True)
 
