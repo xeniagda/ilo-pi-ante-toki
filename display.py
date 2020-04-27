@@ -12,13 +12,24 @@ sec_info = ("sec", SEC_GL, sec_dec, STYPE_SEC)
 aux_info = ("aux", AUX_GL, aux_dec, STYPE_AUX)
 
 for name, gl, dec, stype in [sec_info, aux_info]:
-    xs, ys = generate_batch(6, stype, max_length=-1)
+    xs, ys = generate_batch(5, stype, max_length=-1)
+
+    extra = input("Your own phrase> ")
+    bpe = PRIM_GL.str_to_bpe(extra)
+    bpe += [-1] * (xs.size(1) - len(bpe))
+    bpe = torch.LongTensor([bpe])
+
+    y = [-1] * ys.size(1)
+    y = torch.LongTensor([y])
+
+    xs = torch.cat((xs, bpe), axis=0)
+    ys = torch.cat((ys, y), axis=0)
 
     hid = enc(xs)
-    outs, atts = dec(hid, ys, 0.5)
+    outs, atts = dec(hid, ys, 0)
 
     for i in range(len(xs)):
-        plt.subplot(2, 3, i + 1)
+        plt.subplot(3, 2, i + 1)
         x = xs[i]
 
         y = ys[i]
@@ -32,9 +43,12 @@ for name, gl, dec, stype in [sec_info, aux_info]:
             x = x[:x_eofs[0]]
             att = att[:, :x_eofs[0]]
 
+        y_eofs = (y == -1).nonzero()
+        if len(y_eofs) > 0:
+            y = y[:y_eofs[0]]
+
         hout_eofs = (hard_out == gl.n_tokens() - 1).nonzero()
         if len(hout_eofs) > 0:
-            y = y[:hout_eofs[0]]
             out = out[:hout_eofs[0]]
             hard_out = hard_out[:hout_eofs[0]]
             att = att[:hout_eofs[0]]
