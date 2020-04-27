@@ -287,7 +287,7 @@ impl Translation<Vec<usize>> {
         };
 
         for (&id, sentence) in sentences {
-            id_offset_size.insert(id, (offset, sentence.len()));
+            id_offset_size.insert(id, (offset, sentence.len() * 2));
 
             for &point in sentence {
                 let point_u16: u16 = point.try_into().map_err(|_| Error::new(ErrorKind::InvalidData, format!("{} is too large to fit in a u16!", point)))?;
