@@ -184,11 +184,55 @@ def generate_batch(batch_size, other_stype, max_length=None):
     return torch.cat(x_tensors, dim=0).to(device), torch.cat(y_tensors, dim=0).to(device)
 
 ENCODER_SAVE = "save/enc.pth"
-DECODER_SAVE = "save/dec.pth"
+SEC_DECODER_SAVE = "save/dec-sec.pth"
+AUX_DECODER_SAVE = "save/dec-aux.pth"
+
+
+def load_from_save():
+    enc = Encoder(PRIM_GL.n_tokens(), 20, 20)
+    sec_dec = Decoder(SEC_GL.n_tokens(), 20, 40, 80)
+    aux_dec = Decoder(SEC_GL.n_tokens(), 20, 40, 80)
+
+    if os.path.isfile(ENCODER_SAVE) \
+       and os.path.isfile(SEC_DECODER_SAVE) \
+       and os.path.isfile(AUX_DECODER_SAVE) \
+       and os.path.isfile(OPT_SAVE):
+        print("Loading from save")
+        enc.load_state_dict(torch.load(ENCODER_SAVE, map_location=device))
+        sec_dec.load_state_dict(torch.load(SEC_DECODER_SAVE, map_location=device))
+        aux_dec.load_state_dict(torch.load(AUX_DECODER_SAVE, map_location=device))
+
+        enc = enc.to(device)
+        sec_dec = sec_dec.to(device)
+        aux_dec = aux_dec.to(device)
+
+        opt = torch.optim.Adam(
+            list(enc.parameters()) + list(sec_dec.parameters()) + list(aux_dec.parameters()),
+            lr=0.001,
+        )
+
+        opt.load_state_dict(torch.load(OPT_SAVE, map_location=device))
+    else:
+        enc = enc.to(device)
+        sec_dec = sec_dec.to(device)
+        aux_dec = aux_dec.to(device)
+
+        opt = torch.optim.Adam(
+            list(enc.parameters()) + list(sec_dec.parameters()) + list(aux_dec.parameters()),
+            lr=0.001,
+        )
+
+    return enc, sec_dec, aux_dec, opt
+
+def save(enc, sec_dec, aux_dec, opt):
+    torch.save(enc.state_dict(), ENCODER_SAVE)
+    torch.save(sec_dec.state_dict(), SEC_DECODER_SAVE)
+    torch.save(aux_dec.state_dict(), AUX_DECODER_SAVE)
+    torch.save(opt.state_dict(), OPT_SAVE)
+
 
 if __name__ == "__main__":
-    enc = Encoder(PRIM_GL.n_tokens(), 20, 20).to(device)
-    sec_dec = Decoder(SEC_GL.n_tokens(), 20, 40, 80).to(device)
+    enc, sec_dec, aux_dec, _ = load_from_save()
 
     prim_sent, sec_sent = generate_batch(256, STYPE_SEC) #load_one_pair(STYPE_SEC)
 
