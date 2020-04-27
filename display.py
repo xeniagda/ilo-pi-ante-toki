@@ -44,7 +44,7 @@ for name, gl, dec, stype in [sec_info, aux_info]:
 
         print(x_words, y_words)
         plt.imshow(att.detach().numpy())
-        plt.xticks(np.arange(len(x)), x_words)
+        plt.xticks(np.arange(len(x)), x_words, rotation="vertical")
         plt.yticks(np.arange(len(y_words)), y_words)
 
     plt.show()
