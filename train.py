@@ -95,7 +95,8 @@ if __name__ == "__main__":
             # Display
             for i in range(len(xs)):
                 print()
-                print(f"> {display_tokens(xs[i], PRIM_GL)} (= {display_tokens(ys[i], gl)})")
+                print(">", display_tokens(xs[i], PRIM_GL))
+                print("=", display_tokens(ys[i], gl))
                 gen = y_hat[i].argmax(dim=1)
                 print("≈", display_tokens(gen, gl))
 
