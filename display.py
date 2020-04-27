@@ -40,11 +40,12 @@ for name, gl, dec, stype in [sec_info, aux_info]:
             att = att[:hout_eofs[0]]
 
         x_words = [PRIM_GL.bpe_to_str([word]) for word in x]
-        y_words = [gl.bpe_to_str([word]) for word in hard_out]
+        y_words = [gl.bpe_to_str([word]) for word in y]
+        hy_words = [gl.bpe_to_str([word]) for word in hard_out]
 
-        print("/".join(x_words), "/".join(y_words))
+        print("/".join(x_words), ";", "/".join(hy_words), "(", "/".join(y_words), ")")
         plt.imshow(att.detach().numpy())
         plt.xticks(np.arange(len(x)), x_words, rotation="vertical")
-        plt.yticks(np.arange(len(y_words)), y_words)
+        plt.yticks(np.arange(len(hy_words)), hy_words)
 
     plt.show()
