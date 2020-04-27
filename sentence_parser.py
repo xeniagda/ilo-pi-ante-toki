@@ -1,5 +1,5 @@
 import os
-
+import random
 from abc import ABC, abstractmethod
 import struct
 
@@ -146,20 +146,43 @@ STYPE_PRIM = 0
 STYPE_SEC = 1
 STYPE_AUX = 2
 
+def open_size(path):
+    return open(os.path.expanduser(path), "rb"), os.path.getsize(os.path.expanduser(path))
 
-sec_links = open(os.path.expanduser("~/.cache/ilo-pi-ante-toki/sec-links.bin"), "rb")
-aux_links = open(os.path.expanduser("~/.cache/ilo-pi-ante-toki/aux-links.bin"), "rb")
+sec_links, sec_links_size = open_size("~/.cache/ilo-pi-ante-toki/sec-links.bin")
+aux_links, aux_links_size = open_size("~/.cache/ilo-pi-ante-toki/aux-links.bin")
 
 sents_prim = open(os.path.expanduser("~/.cache/ilo-pi-ante-toki/sentences-prim.bin"), "rb")
 sents_sec = open(os.path.expanduser("~/.cache/ilo-pi-ante-toki/sentences-sec.bin"), "rb")
 sents_aux = open(os.path.expanduser("~/.cache/ilo-pi-ante-toki/sentences-aux.bin"), "rb")
 
 def load_one_pair(other_stype):
-    pass
+    links_file = sec_links if other_stype == STYPE_SEC else aux_links
+    links_size = sec_links_size if other_stype == STYPE_SEC else aux_links_size
+    sents_other = sents_sec if other_stype == STYPE_SEC else sents_aux
+
+    n_links = links_size // (4 * 4)
+    selected = random.randrange(0, n_links)
+    file_offset = selected * 4 * 4
+
+    links_file.seek(file_offset)
+
+    p_start, p_len, o_start, o_len = struct.unpack("<4I", links_file.read(4 * 4))
+
+    sents_prim.seek(p_start)
+    prim_sent = struct.unpack(f"<{p_len // 2}H", sents_prim.read(p_len))
+
+    sents_other.seek(o_start)
+    other_sent = struct.unpack(f"<{o_len // 2}H", sents_other.read(o_len))
+
+    return prim_sent, other_sent
 
 if __name__ == "__main__":
-    gl = GramList.from_file(open(os.path.expanduser("~/.cache/ilo-pi-ante-toki/ngrams-prim.bin"), "rb"))
+    prim_gl = GramList.from_file(open(os.path.expanduser("~/.cache/ilo-pi-ante-toki/ngrams-prim.bin"), "rb"))
+    sec_gl = GramList.from_file(open(os.path.expanduser("~/.cache/ilo-pi-ante-toki/ngrams-sec.bin"), "rb"))
 
-    enc = gl.str_to_bpe("Besides the above method, any other way to find out whether is fp is already at the eof?")
-    print(enc)
-    print(", ".join("'" + gl.bpe_to_str([x]) + "'" for x in enc))
+    prim, sec = load_one_pair(STYPE_SEC)
+
+    print("/".join(prim_gl.bpe_to_str([x]) for x in prim))
+
+    print("/".join(sec_gl.bpe_to_str([x]) for x in sec))
