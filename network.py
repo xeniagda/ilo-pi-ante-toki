@@ -156,6 +156,8 @@ def generate_batch(batch_size, other_stype, max_length=None):
         y = None
         while y is None or not (min_length < len(y) < max_length or min_length < len(x) < max_length):
             x, y = load_one_pair(other_stype)
+            if max_length == -1:
+                break
 
         longest_x = max(longest_x, len(x))
         longest_y = max(longest_y, len(y))

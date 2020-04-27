@@ -12,7 +12,7 @@ sec_info = ("sec", SEC_GL, sec_dec, STYPE_SEC)
 aux_info = ("aux", AUX_GL, aux_dec, STYPE_AUX)
 
 for name, gl, dec, stype in [sec_info, aux_info]:
-    xs, ys = generate_batch(6, stype)
+    xs, ys = generate_batch(6, stype, max_length=-1)
 
     hid = enc(xs)
     outs, atts = dec(hid, ys, 0.5)
