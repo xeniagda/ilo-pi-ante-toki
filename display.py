@@ -15,7 +15,7 @@ for name, gl, dec, stype in [sec_info, aux_info]:
     xs, ys = generate_batch(6, stype)
 
     hid = enc(xs)
-    outs, atts = dec(hid, ys, 0)
+    outs, atts = dec(hid, ys, 0.5)
 
     for i in range(len(xs)):
         plt.subplot(2, 3, i + 1)
