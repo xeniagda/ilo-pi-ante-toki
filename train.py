@@ -8,7 +8,12 @@ import torch.nn.functional as F
 from sentence_parser import STYPE_SEC, STYPE_AUX, PRIM_GL, SEC_GL, AUX_GL
 from network import device, Encoder, Decoder, into_one_hot, generate_batch, load_from_save, save
 
-BATCH_SIZE = 48
+if device.type == "cuda":
+    BATCH_SIZE = 1024
+else:
+    BATCH_SIZE = 32
+
+print(f"Using batch size of {BATCH_SIZE}")
 
 def display_tokens(toklist, gl):
     out = ""
