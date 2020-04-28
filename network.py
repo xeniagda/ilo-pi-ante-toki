@@ -196,7 +196,8 @@ def load_from_save():
     if os.path.isfile(ENCODER_SAVE) \
        and os.path.isfile(SEC_DECODER_SAVE) \
        and os.path.isfile(AUX_DECODER_SAVE) \
-       and os.path.isfile(OPT_SAVE):
+       and os.path.isfile(SEC_OPT_SAVE) \
+       and os.path.isfile(AUX_OPT_SAVE):
         print("Loading from save")
         enc.load_state_dict(torch.load(ENCODER_SAVE, map_location=device))
         sec_dec.load_state_dict(torch.load(SEC_DECODER_SAVE, map_location=device))
