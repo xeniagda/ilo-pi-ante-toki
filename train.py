@@ -34,7 +34,7 @@ def display_tokens(toklist, gl):
 
 enc, sec_dec, aux_dec, opt = load_from_save()
 
-EPSILON = 1e-8
+EPSILON = 1e-4
 
 if __name__ == "__main__":
     torch.autograd.set_detect_anomaly(True)
