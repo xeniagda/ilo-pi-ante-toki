@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 from sentence_parser import STYPE_SEC, STYPE_AUX, PRIM_GL, SEC_GL, AUX_GL
 from network import into_one_hot, generate_batch, load_from_save
 
-enc, sec_dec, aux_dec, _ = load_from_save()
+enc, sec_dec, aux_dec, *_ = load_from_save()
 
 sec_info = ("sec", SEC_GL, sec_dec, STYPE_SEC)
 aux_info = ("aux", AUX_GL, aux_dec, STYPE_AUX)
