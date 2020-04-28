@@ -76,7 +76,7 @@ if __name__ == "__main__":
 
                 loss = crit(EPSILON + y_hat.view(-1, SEC_GL.n_tokens()), ys.view(-1) % SEC_GL.n_tokens())
 
-                print("L={:.3f}; a={:.3f}%".format(loss, acc*100), end=" ")
+                print("L={:.3f}; a={:6.3f}%".format(loss, acc*100), end=" ")
                 loss.backward()
                 print("b", end=" ")
                 opt.step()
@@ -92,7 +92,7 @@ if __name__ == "__main__":
 
         print("Epoch", epoch, "done")
 
-        for name, losses, dec, stype in [sec_info, aux_info]:
+        for name, losses, dec, opt, stype in [sec_info, aux_info]:
             print(f"For {name}")
             xs, ys = generate_batch(4, stype, max_length=10)
             gl = SEC_GL if stype == STYPE_SEC else AUX_GL
