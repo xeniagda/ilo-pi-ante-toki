@@ -32,7 +32,7 @@ def display_tokens(toklist, gl):
                 last += 1
     return out[1:]
 
-enc, sec_dec, aux_dec, opt = load_from_save()
+enc, sec_dec, aux_dec, sec_opt, aux_opt = load_from_save()
 
 EPSILON = 1e-4
 
@@ -47,12 +47,12 @@ if __name__ == "__main__":
         sec_losses = []
         aux_losses = []
 
-        sec_info = ("sec", sec_losses, sec_dec, STYPE_SEC)
-        aux_info = ("aux", aux_losses, aux_dec, STYPE_AUX)
+        sec_info = ("sec", sec_losses, sec_dec, sec_opt, STYPE_SEC)
+        aux_info = ("aux", aux_losses, aux_dec, aux_opt, STYPE_AUX)
 
         for batch_nr in range(16):
             print(hex(batch_nr)[2:], end=" ")
-            for name, losses, dec, stype in [sec_info, aux_info]:
+            for name, losses, dec, opt, stype in [sec_info, aux_info, aux_info]:
                 print(name, end=":")
                 xs, ys = generate_batch(BATCH_SIZE, stype)
 
@@ -82,10 +82,13 @@ if __name__ == "__main__":
                 opt.step()
                 print("s", end=";")
 
+                enc.zero_grad()
+                dec.zero_grad()
+
                 losses.append(loss.item())
             print()
 
-        save(enc, sec_dec, aux_dec, opt)
+        save(enc, sec_dec, aux_dec, sec_opt, aux_opt)
 
         print("Epoch", epoch, "done")
 

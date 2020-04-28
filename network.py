@@ -16,10 +16,6 @@ else:
 
 print("starting using device", device)
 
-ENCODER_SAVE = "save/encoder.pth"
-DECODER_SAVE = "save/decoder.pth"
-OPT_SAVE     = "save/opt.pth"
-
 class Encoder(nn.Module):
     def __init__(self, input_size, emb_size, hidden_size):
         super(Encoder, self).__init__()
@@ -188,6 +184,8 @@ def generate_batch(batch_size, other_stype, max_length=None):
 ENCODER_SAVE = "save/enc.pth"
 SEC_DECODER_SAVE = "save/dec-sec.pth"
 AUX_DECODER_SAVE = "save/dec-aux.pth"
+SEC_OPT_SAVE = "save/opt-sec.pth"
+AUX_OPT_SAVE = "save/opt-aux.pth"
 
 
 def load_from_save():
@@ -208,29 +206,42 @@ def load_from_save():
         sec_dec = sec_dec.to(device)
         aux_dec = aux_dec.to(device)
 
-        opt = torch.optim.Adam(
-            list(enc.parameters()) + list(sec_dec.parameters()) + list(aux_dec.parameters()),
+        sec_opt = torch.optim.Adam(
+            list(enc.parameters()) + list(sec_dec.parameters()),
             lr=0.001,
         )
 
-        opt.load_state_dict(torch.load(OPT_SAVE, map_location=device))
+        aux_opt = torch.optim.Adam(
+            list(enc.parameters()) + list(aux_dec.parameters()),
+            lr=0.001,
+        )
+
+        sec_opt.load_state_dict(torch.load(SEC_OPT_SAVE, map_location=device))
+        aux_opt.load_state_dict(torch.load(AUX_OPT_SAVE, map_location=device))
+
     else:
         enc = enc.to(device)
         sec_dec = sec_dec.to(device)
         aux_dec = aux_dec.to(device)
 
-        opt = torch.optim.Adam(
-            list(enc.parameters()) + list(sec_dec.parameters()) + list(aux_dec.parameters()),
+        sec_opt = torch.optim.Adam(
+            list(enc.parameters()) + list(sec_dec.parameters()),
             lr=0.001,
         )
 
-    return enc, sec_dec, aux_dec, opt
+        aux_opt = torch.optim.Adam(
+            list(enc.parameters()) + list(aux_dec.parameters()),
+            lr=0.001,
+        )
 
-def save(enc, sec_dec, aux_dec, opt):
+    return enc, sec_dec, aux_dec, sec_opt, aux_opt
+
+def save(enc, sec_dec, aux_dec, sec_opt, aux_opt):
     torch.save(enc.state_dict(), ENCODER_SAVE)
     torch.save(sec_dec.state_dict(), SEC_DECODER_SAVE)
     torch.save(aux_dec.state_dict(), AUX_DECODER_SAVE)
-    torch.save(opt.state_dict(), OPT_SAVE)
+    torch.save(sec_opt.state_dict(), SEC_OPT_SAVE)
+    torch.save(aux_opt.state_dict(), AUX_OPT_SAVE)
 
 
 if __name__ == "__main__":
