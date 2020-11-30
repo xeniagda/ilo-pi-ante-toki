@@ -58,8 +58,8 @@ class WebInterface:
 
     async def translate(self, req):
         ip, port = req.transport.get_extra_info("peername")
-        print(ip)
         if ip in self.currently_blocked_users:
+            logging.info(f"Too many requests for {ip}")
             return make_json_response({"error": "too many requests"}, status=400)
 
         self.currently_blocked_users.add(ip)
@@ -67,6 +67,7 @@ class WebInterface:
             await asyncio.sleep(1)
 
             data = await req.json()
+            logging.info(f"Translating {repr(data)}")
 
             bpe = PRIM_GL.str_to_bpe(data["input"])
             xs = torch.LongTensor([bpe])
@@ -102,19 +103,18 @@ class WebInterface:
             else:
                 out = "".join(hy_words) + "..."
 
+            logging.info(f"Got {repr(out)}")
             return make_json_response({"result": out})
         finally:
             self.currently_blocked_users.remove(ip)
 
     def run(self, port):
-        web.run_app(self.app, access_log=False, port=port)
+        web.run_app(self.app, port=port)
 
 
 app = web.Application()
 
 WEB_STATE = WebInterface(app)
-
-logging.getLogger('asyncio').setLevel(logging.WARNING)
 
 if len(sys.argv) == 2:
     WEB_STATE.run(port=int(sys.argv[1]))
