@@ -57,47 +57,54 @@ class WebInterface:
         )
 
     async def translate(self, req):
-        ip = req.transport.get_extra_info("peername")
+        ip, port = req.transport.get_extra_info("peername")
+        print(ip)
+        if ip in self.currently_blocked_users:
+            return make_json_response({"error": "too many requests"}, status=400)
+
         self.currently_blocked_users.add(ip)
+        try:
+            await asyncio.sleep(1)
 
-        await asyncio.sleep(1)
+            data = await req.json()
 
-        data = await req.json()
+            bpe = PRIM_GL.str_to_bpe(data["input"])
+            xs = torch.LongTensor([bpe])
 
-        bpe = PRIM_GL.str_to_bpe(data["input"])
-        xs = torch.LongTensor([bpe])
+            eof_idx = -1
+            did_cuttof = False
+            for e in range(5):
+                ylen = 5 * 2 ** e
+                ys = torch.LongTensor([[-1] * ylen])
 
-        eof_idx = -1
-        did_cuttof = False
-        for e in range(5):
-            ylen = 5 * 2 ** e
-            ys = torch.LongTensor([[-1] * ylen])
+                hid = enc(xs)
+                outs, atts = sec_dec(hid, ys, 0)
+                out, att = outs[0], atts[0]
 
-            hid = enc(xs)
-            outs, atts = sec_dec(hid, ys, 0)
-            out, att = outs[0], atts[0]
+                hard_out = out.argmax(axis=1)
 
-            hard_out = out.argmax(axis=1)
-
-            hout_eofs = (hard_out == SEC_GL.n_tokens() - 1).nonzero()
-            if len(hout_eofs) == 0:
-                eof_idx = ylen
-                continue
-            eof_idx = hout_eofs[0]
-            did_cuttof = True
+                hout_eofs = (hard_out == SEC_GL.n_tokens() - 1).nonzero()
+                if len(hout_eofs) == 0:
+                    eof_idx = ylen
+                    continue
+                eof_idx = hout_eofs[0]
+                did_cuttof = True
 
 
-        out = out[:eof_idx]
-        hard_out = hard_out[:eof_idx]
-        att = att[:eof_idx]
+            out = out[:eof_idx]
+            hard_out = hard_out[:eof_idx]
+            att = att[:eof_idx]
 
-        hy_words = [SEC_GL.bpe_to_str([word]) for word in hard_out]
+            hy_words = [SEC_GL.bpe_to_str([word]) for word in hard_out]
 
-        if did_cuttof:
-            out = "".join(hy_words)
-        else:
-            out = "".join(hy_words) + "..."
-        return make_json_response({"result": out})
+            if did_cuttof:
+                out = "".join(hy_words)
+            else:
+                out = "".join(hy_words) + "..."
+
+            return make_json_response({"result": out})
+        finally:
+            self.currently_blocked_users.remove(ip)
 
     def run(self, port):
         web.run_app(self.app, access_log=False, port=port)
