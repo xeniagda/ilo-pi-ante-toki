@@ -1,0 +1,9 @@
+version: "2"
+services:
+  ilo-pi-ante-toki:
+    build: .
+    restart: on-failure
+    volumes:
+      - ./:/usr/src/app/
+    ports:
+        - "3080:3080"
