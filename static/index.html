@@ -1,0 +1,63 @@
+<html>
+    <head>
+        <style>
+body {
+    font-family: monospace;
+    font-size: 14px;
+    padding: 3em;
+    background: black;
+    color: #cccccc;
+}
+p {
+    font-family: arial;
+    background: teal;
+    width: 10em;
+    padding: 1em;
+    border-radius: 1em;
+}
+#out {
+    padding: 1em;
+}
+        </style>
+    </head>
+
+    <body>
+        <h3> hello and welcome to ijo-pi-ante-toki. this is a thing of language changement. </h3>
+        <br />
+        type text to change here:
+        <input id="inp" type="text" placeholder="life is good"> </input>
+        <button id="do-the-thing"> press me to change the language </button>
+
+        <div id="out">
+            your phrase but in toki pona (hopefully):
+            <p id="output"></p>
+        </div>
+
+        pro tips:
+        <ul>
+            <li> end your sentences with a period </li>
+            <li> for names, use Tom or Mary (jan ton / jan mewi in toki pona) </li>
+            <li> it takes ~1s for every request to be processed. please no spam </li>
+        </ul>
+    </body>
+
+    <script>
+
+let inp_field = document.getElementById("inp");
+
+document.getElementById("do-the-thing").onclick = async (e) => {
+    let data = inp_field.value;
+
+    let res = await fetch('/api/translate', {
+        method: 'POST',
+        body: JSON.stringify( { "input": data } )
+    });
+
+    let json = await res.json();
+    document.getElementById("output").innerText = json.result;
+};
+
+
+
+    </script>
+</html>
