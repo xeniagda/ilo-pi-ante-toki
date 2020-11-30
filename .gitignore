@@ -3,3 +3,4 @@
 **/*.dSYM
 **/__pycache__
 save/cache
+cache
