@@ -2,4 +2,4 @@
 **/tokens
 **/*.dSYM
 **/__pycache__
-save/
+save/cache

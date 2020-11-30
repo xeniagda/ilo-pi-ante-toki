@@ -153,12 +153,12 @@ STYPE_AUX = 2
 def open_size(path):
     return open(os.path.expanduser(path), "rb"), os.path.getsize(os.path.expanduser(path))
 
-sec_links, sec_links_size = open_size("~/.cache/ilo-pi-ante-toki/sec-links.bin")
-aux_links, aux_links_size = open_size("~/.cache/ilo-pi-ante-toki/aux-links.bin")
+sec_links, sec_links_size = open_size("cache/sec-links.bin")
+aux_links, aux_links_size = open_size("cache/aux-links.bin")
 
-sents_prim = open(os.path.expanduser("~/.cache/ilo-pi-ante-toki/sentences-prim.bin"), "rb")
-sents_sec = open(os.path.expanduser("~/.cache/ilo-pi-ante-toki/sentences-sec.bin"), "rb")
-sents_aux = open(os.path.expanduser("~/.cache/ilo-pi-ante-toki/sentences-aux.bin"), "rb")
+sents_prim = open(os.path.expanduser("cache/sentences-prim.bin"), "rb")
+sents_sec = open(os.path.expanduser("cache/sentences-sec.bin"), "rb")
+sents_aux = open(os.path.expanduser("cache/sentences-aux.bin"), "rb")
 
 def load_one_pair(other_stype):
     links_file = sec_links if other_stype == STYPE_SEC else aux_links
@@ -181,9 +181,9 @@ def load_one_pair(other_stype):
 
     return prim_sent + [-1], other_sent + [-1]
 
-PRIM_GL = GramList.from_file(open(os.path.expanduser("~/.cache/ilo-pi-ante-toki/ngrams-prim.bin"), "rb"))
-SEC_GL = GramList.from_file(open(os.path.expanduser("~/.cache/ilo-pi-ante-toki/ngrams-sec.bin"), "rb"))
-AUX_GL = GramList.from_file(open(os.path.expanduser("~/.cache/ilo-pi-ante-toki/ngrams-aux.bin"), "rb"))
+PRIM_GL = GramList.from_file(open(os.path.expanduser("cache/ngrams-prim.bin"), "rb"))
+SEC_GL = GramList.from_file(open(os.path.expanduser("cache/ngrams-sec.bin"), "rb"))
+AUX_GL = GramList.from_file(open(os.path.expanduser("cache/ngrams-aux.bin"), "rb"))
 
 if __name__ == "__main__":
     prim, sec = load_one_pair(STYPE_SEC)

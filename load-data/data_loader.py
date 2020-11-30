@@ -8,7 +8,7 @@ import tempfile
 SENTENCES_URL = "https://downloads.tatoeba.org/exports/sentences.tar.bz2"
 LINKS_URL = "https://downloads.tatoeba.org/exports/links.tar.bz2"
 
-CACHE_DIR = "~/.cache/ilo-pi-ante-toki/raw/"
+CACHE_DIR = "cache/raw/"
 TMP_DIR = tempfile.gettempdir()
 
 CACHE_DIR = os.path.expanduser(CACHE_DIR)

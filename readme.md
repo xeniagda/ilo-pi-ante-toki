@@ -14,7 +14,7 @@ The first step is to download the raw data from Tatoeba, which is done with a Py
 python3 load-data/data_loader.py
 ```
 
-All files are by default put into the folder `~/.cache/ilo-pi-ante-toki/`, which will be created automatically by `data_loader.py`. If you run Windows, you might need to change this path to something else. This needs to be done in all files separately.
+All files are by default put into the folder `cache/ilo-pi-ante-toki/`, which will be created automatically by `data_loader.py`. If you run Windows, you might need to change this path to something else. This needs to be done in all files separately.
 
 The uncompressed data is quite large, around 450MiB for the sentences and 250MiB for the links. These include a lot of languages we don't need, and is stored in quite an inefficient format for reading arbitrary sentence pairs. The program `load-data/select-langs.rs` processes and converts this data into a more friendly format, only including the languages we want. In this script you can specify the languages to use. The primary language is the input to the translator, the secondary is the output and the auxiliary language is the transfor-learning part.
 

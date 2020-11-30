@@ -368,7 +368,7 @@ impl Gramophone {
 }
 
 fn get_cache_path(filename: &str) -> String {
-    format!("{}/.cache/ilo-pi-ante-toki/{}", var("HOME").expect("no home"), filename)
+    format!("cache/{}", filename)
 }
 
 fn main() -> Result<()> {

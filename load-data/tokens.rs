@@ -39,7 +39,7 @@ pub fn encode_into_ngrams<I: Debug + Copy + Eq + Hash, F: Fn(&I) -> bool>(inp: V
     // println!("Tokens: {:?}", tokens);
     // println!("Grams: {:?}", grams);
 
-    for _ in 0..u16::MAX - tokens.len() as u16 {
+    for _ in 0..std::u16::MAX - tokens.len() as u16 {
         let pair_freq = get_pair_freq(&tokens, &skips);
         let (&commonest_pair, &freq) = if let Some(x) = pair_freq.iter().max_by_key(|(_, &count)| count) {
             x
@@ -177,7 +177,7 @@ pub fn encode_grams<F: Write>(out: &mut F, grams: Vec<Gram<char>>) -> std::io::R
 fn main() -> std::io::Result<()> {
     use std::io::Read;
 
-    let mut f = std::fs::File::open("/Users/jonathanloov/.cache/ilo-pi-ante-toki/sentences-sec.txt")?;
+    let mut f = std::fs::File::open("cache/sentences-sec.txt")?;
     let mut buf = Vec::new();
     f.read_to_end(&mut buf)?;
 
