@@ -67,7 +67,12 @@ document.getElementById("do-the-thing").onclick = async (e) => {
     document.getElementById("confidence").innerText = "";
     document.getElementById("time").innerText = "";
 
+    let last_ch = inp_field.value[inp_field.value.length - 1];
+    if (last_ch != '.' && last_ch != '?' && last_ch != '!') {
+        inp_field.value += ".";
+    }
     let data = inp_field.value;
+
     let conf_boost = conf.value;
 
     let res = await fetch('api/translate', {
