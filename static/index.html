@@ -18,6 +18,9 @@ p {
 #out {
     padding: 1em;
 }
+#error {
+    color: red;
+}
         </style>
     </head>
 
@@ -31,6 +34,7 @@ p {
         <div id="out">
             your phrase but in toki pona (hopefully):
             <p id="output"></p>
+            <pre id="error"></pre>
         </div>
 
         pro tips:
@@ -52,8 +56,12 @@ document.getElementById("do-the-thing").onclick = async (e) => {
         method: 'POST',
         body: JSON.stringify( { "input": data } )
     });
-
     let json = await res.json();
+
+    if (await res.status != 200) {
+        document.getElementById("error").innerText = "Error: " + json.error;
+    }
+
     document.getElementById("output").innerText = json.result;
 };
 
