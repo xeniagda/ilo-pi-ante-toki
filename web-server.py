@@ -44,7 +44,6 @@ class WebInterface:
     def __init__(self, app):
         self.app = app
 
-        app.router.add_post("/ilo/api/translate", self.translate)
         app.router.add_post("/api/translate", self.translate)
 
         app.router.add_get("/", self.index)
