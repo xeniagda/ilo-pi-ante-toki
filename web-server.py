@@ -77,7 +77,7 @@ class WebInterface:
             xs = torch.LongTensor([bpe])
 
             confidence_boost = data.get("confidence_boost", 1)
-            confidence_boost = min(10, max(-10, float(confidence_boost)))
+            confidence_boost = min(3, max(-3, float(confidence_boost)))
 
             logging.info(f"Translating {repr(data)}, confidence boost = {confidence_boost}")
 
