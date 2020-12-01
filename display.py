@@ -26,7 +26,7 @@ for name, gl, dec, stype in [sec_info, aux_info]:
     ys = torch.cat((ys, y), axis=0)
 
     hid = enc(xs)
-    outs, atts = dec(hid, ys, 0, choice=True)
+    outs, atts, hard_outs = dec(hid, ys, 0, choice=True)
 
     for i in range(len(xs)):
         plt.subplot(3, 2, i + 1)
@@ -35,8 +35,7 @@ for name, gl, dec, stype in [sec_info, aux_info]:
         y = ys[i]
         out = outs[i]
         att = atts[i]
-
-        hard_out = out.argmax(axis=1)
+        hard_out = hard_outs[i]
 
         x_eofs = (x == -1).nonzero()
         if len(x_eofs) > 0:

@@ -65,7 +65,7 @@ if __name__ == "__main__":
 
                 hids = enc(xs)
                 print("e", end="", flush=True)
-                y_hat, _ = dec(hids, ys)
+                y_hat, _, _ = dec(hids, ys)
                 print("d", end="", flush=True)
 
                 pred = y_hat.argmax(axis=2)
@@ -98,7 +98,7 @@ if __name__ == "__main__":
             gl = SEC_GL if stype == STYPE_SEC else AUX_GL
 
             hids = enc(xs)
-            y_hat, _ = dec(hids, ys, teacher_forcing_prob=0)
+            y_hat, _, _ = dec(hids, ys, teacher_forcing_prob=0)
 
             # Display
             for i in range(len(xs)):

@@ -86,6 +86,8 @@ class Decoder(nn.Module):
         output = torch.FloatTensor(batch_size, out_size, self.output_size).to(device)
         weights_mat = torch.FloatTensor(batch_size, out_size, inp_size).to(device)
 
+        hard_out = torch.LongTensor(batch_size, out_size).to(device)
+
         for i in range(out_size):
             # Generate energies
 
@@ -123,14 +125,16 @@ class Decoder(nn.Module):
                 last_char_idx = real_output[:, i]
             else:
                 if choice:
-                    last_char_idx = torch.multinomial(torch.exp(out * confidence_boost), num_samples=1)
-                    last_char_idx = last_char_idx[:,0]
+                    dist = torch.exp(out * confidence_boost)
+                    last_char_idx = torch.multinomial(dist, num_samples=1)[:,0]
                 else:
                     last_char_idx = out.argmax(axis=1)
 
+            hard_out[:, i] = last_char_idx
+
             last_char = last_char_idx.clone()
 
-        return output, weights_mat
+        return output, weights_mat, hard_out
 
 
     def init_hidden(self, batch_size):
