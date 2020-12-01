@@ -48,7 +48,7 @@ let inp_field = document.getElementById("inp");
 document.getElementById("do-the-thing").onclick = async (e) => {
     let data = inp_field.value;
 
-    let res = await fetch('/api/translate', {
+    let res = await fetch('ilo/api/translate', {
         method: 'POST',
         body: JSON.stringify( { "input": data } )
     });
