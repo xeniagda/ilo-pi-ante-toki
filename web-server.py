@@ -98,10 +98,12 @@ class WebInterface:
                 eof_idx = hout_eofs[0]
                 did_cuttof = True
 
-
             out = out[:eof_idx]
             hard_out = hard_out[:eof_idx]
             att = att[:eof_idx]
+
+            confidences = torch.gather(out, 1, hard_out.view(-1, 1))
+            confidence = confidences.prod().item()
 
             hy_words = [SEC_GL.bpe_to_str([word]) for word in hard_out]
 
@@ -110,8 +112,8 @@ class WebInterface:
             else:
                 out = "".join(hy_words) + "..."
 
-            logging.info(f"Got {repr(out)}")
-            return make_json_response({"result": out})
+            logging.info(f"Got {repr(out)}, conf = {confidence}")
+            return make_json_response({"result": out, "confidence": confidence})
         finally:
             self.currently_blocked_users.remove(ip)
 
