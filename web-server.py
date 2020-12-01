@@ -61,11 +61,11 @@ class WebInterface:
 
     async def translate(self, req):
         if not LOADED:
-            return make_json_response({"error": "network not loaded"}, status=500)
+            return make_json_response({"error": "Network not loaded. Please contact coral if this happens."}, status=500)
         ip, port = req.transport.get_extra_info("peername")
         if ip in self.currently_blocked_users:
             logging.info(f"Too many requests for {ip}")
-            return make_json_response({"error": "too many requests"}, status=400)
+            return make_json_response({"error": "Too many requests. Try again in a few seconds!"}, status=400)
 
         self.currently_blocked_users.add(ip)
         try:
