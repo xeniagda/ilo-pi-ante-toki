@@ -29,6 +29,9 @@ p {
         <br />
         type text to change here:
         <input id="inp" type="text" placeholder="life is good"> </input>
+        <br />
+        <label for="confidence-boost">confidence boost:</label>
+        <input id="confidence-boost" type="number" step="0.1" value="1"> </input>
         <button id="do-the-thing"> press me to change the language </button>
 
         <div id="out">
@@ -48,13 +51,18 @@ p {
     <script>
 
 let inp_field = document.getElementById("inp");
+let conf = document.getElementById("confidence-boost");
 
 document.getElementById("do-the-thing").onclick = async (e) => {
     let data = inp_field.value;
+    let conf_boost = conf.value;
 
     let res = await fetch('api/translate', {
         method: 'POST',
-        body: JSON.stringify( { "input": data } )
+        body: JSON.stringify({
+            "input": data,
+            "confidence_boost": conf_boost,
+        })
     });
     let json = await res.json();
 

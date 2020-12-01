@@ -72,10 +72,14 @@ class WebInterface:
             await asyncio.sleep(1)
 
             data = await req.json()
-            logging.info(f"Translating {repr(data)}")
 
             bpe = PRIM_GL.str_to_bpe(data["input"])
             xs = torch.LongTensor([bpe])
+
+            confidence_boost = data.get("confidence_boost", 1)
+            confidence_boost = min(10, max(-10, float(confidence_boost)))
+
+            logging.info(f"Translating {repr(data)}, confidence boost = {confidence_boost}")
 
             eof_idx = -1
             did_cuttof = False
