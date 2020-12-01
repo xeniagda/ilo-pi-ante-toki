@@ -60,6 +60,8 @@ document.getElementById("do-the-thing").onclick = async (e) => {
 
     if (await res.status != 200) {
         document.getElementById("error").innerText = "Error: " + json.error;
+    } else {
+        document.getElementById("error").innerText = "";
     }
 
     document.getElementById("output").innerText = json.result;
