@@ -197,9 +197,9 @@ AUX_OPT_SAVE = "save/opt-aux.pth"
 
 
 def load_from_save():
-    enc = Encoder(PRIM_GL.n_tokens(), 400, 100)
-    sec_dec = Decoder(SEC_GL.n_tokens(), 400, 200, 300)
-    aux_dec = Decoder(SEC_GL.n_tokens(), 400, 200, 300)
+    enc = Encoder(PRIM_GL.n_tokens(), 600, 150)
+    sec_dec = Decoder(SEC_GL.n_tokens(), 600, 300, 450)
+    aux_dec = Decoder(SEC_GL.n_tokens(), 600, 300, 450)
 
     if os.path.isfile(ENCODER_SAVE) \
        and os.path.isfile(SEC_DECODER_SAVE) \
@@ -217,12 +217,12 @@ def load_from_save():
 
         sec_opt = torch.optim.Adam(
             list(enc.parameters()) + list(sec_dec.parameters()),
-            lr=0.001,
+            lr=0.0005,
         )
 
         aux_opt = torch.optim.Adam(
             list(enc.parameters()) + list(aux_dec.parameters()),
-            lr=0.001,
+            lr=0.0005,
         )
 
         sec_opt.load_state_dict(torch.load(SEC_OPT_SAVE, map_location=device))
@@ -235,12 +235,12 @@ def load_from_save():
 
         sec_opt = torch.optim.Adam(
             list(enc.parameters()) + list(sec_dec.parameters()),
-            lr=0.001,
+            lr=0.0005,
         )
 
         aux_opt = torch.optim.Adam(
             list(enc.parameters()) + list(aux_dec.parameters()),
-            lr=0.001,
+            lr=0.0005,
         )
 
     return enc, sec_dec, aux_dec, sec_opt, aux_opt
