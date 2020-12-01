@@ -75,7 +75,7 @@ class Decoder(nn.Module):
         self.rnn = nn.Linear(emb_size + dec_hid_size + enc_hid_size, dec_hid_size)
         self.out = nn.Linear(emb_size + dec_hid_size + enc_hid_size, output_size)
 
-    def forward(self, enc_hid, real_output, teacher_forcing_prob=0.5):
+    def forward(self, enc_hid, real_output, teacher_forcing_prob=0.5, choice=False, confidence_boost=1):
         batch_size = enc_hid.size(0)
         inp_size = enc_hid.size(1)
         out_size = real_output.size(1)
@@ -122,7 +122,11 @@ class Decoder(nn.Module):
                 # Teacher forcing
                 last_char_idx = real_output[:, i]
             else:
-                last_char_idx = out.argmax(axis=1)
+                if choice:
+                    last_char_idx = torch.multinomial(torch.exp(out * confidence_boost), num_samples=1)
+                    last_char_idx = last_char_idx[:,0]
+                else:
+                    last_char_idx = out.argmax(axis=1)
 
             last_char = last_char_idx.clone()
 
