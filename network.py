@@ -264,5 +264,5 @@ if __name__ == "__main__":
     hid = enc(prim_sent)
     print("Hidden:", hid.size())
 
-    dec, weights = sec_dec(hid, sec_sent)
+    dec, weights, _ = sec_dec(hid, sec_sent)
     print("Dec :", dec.size())
