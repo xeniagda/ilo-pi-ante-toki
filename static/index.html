@@ -41,6 +41,7 @@ a {
         <div id="out">
             your phrase but in toki pona (hopefully):
             <p id="output"></p>
+            <pre id="confidence"></pre>
             <pre id="error"></pre>
         </div>
 
@@ -79,6 +80,7 @@ document.getElementById("do-the-thing").onclick = async (e) => {
     }
 
     document.getElementById("output").innerText = json.result;
+    document.getElementById("confidence").innerText = "Confidence: " + json.confidence;
 };
 
 
