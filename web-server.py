@@ -98,7 +98,8 @@ class WebInterface:
                 eof_idx = hout_eofs[0]
                 did_cuttof = True
 
-            out = out[:eof_idx]
+            out = torch.exp(out[:eof_idx])
+            out /= out.sum(axis=1).unsqueeze(1)
             hard_out = hard_out[:eof_idx]
             att = att[:eof_idx]
 

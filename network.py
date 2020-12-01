@@ -115,7 +115,7 @@ class Decoder(nn.Module):
             new_hidden = F.elu(new_hidden)
 
             out = self.out(torch.cat([last_ch, new_hidden, context], axis=1))
-            out = F.softmax(out, dim=1)
+            out = F.elu(out)
             output[:, i] = out
             last_hidden = new_hidden
 
