@@ -26,7 +26,7 @@ for name, gl, dec, stype in [sec_info, aux_info]:
     ys = torch.cat((ys, y), axis=0)
 
     hid = enc(xs)
-    outs, atts = dec(hid, ys, 0)
+    outs, atts = dec(hid, ys, 0, choice=True)
 
     for i in range(len(xs)):
         plt.subplot(3, 2, i + 1)

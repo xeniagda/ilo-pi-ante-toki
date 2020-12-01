@@ -84,7 +84,7 @@ class WebInterface:
                 ys = torch.LongTensor([[-1] * ylen])
 
                 hid = enc(xs)
-                outs, atts = sec_dec(hid, ys, 0)
+                outs, atts = sec_dec(hid, ys, 0, choice=True, confidence_boost=3)
                 out, att = outs[0], atts[0]
 
                 hard_out = out.argmax(axis=1)
