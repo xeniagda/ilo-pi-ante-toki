@@ -42,6 +42,7 @@ a {
             your phrase but in toki pona (hopefully):
             <p id="output"></p>
             <pre id="confidence"></pre>
+            <pre id="time"></pre>
             <pre id="error"></pre>
         </div>
 
@@ -61,6 +62,11 @@ let inp_field = document.getElementById("inp");
 let conf = document.getElementById("confidence-boost");
 
 document.getElementById("do-the-thing").onclick = async (e) => {
+    document.getElementById("error").innerText = "";
+    document.getElementById("output").innerText = "";
+    document.getElementById("confidence").innerText = "";
+    document.getElementById("time").innerText = "";
+
     let data = inp_field.value;
     let conf_boost = conf.value;
 
@@ -81,6 +87,8 @@ document.getElementById("do-the-thing").onclick = async (e) => {
 
     document.getElementById("output").innerText = json.result;
     document.getElementById("confidence").innerText = "Confidence: " + json.confidence;
+    document.getElementById("time").innerText = "Translation took: " + json.duration +
+        " seconds (+1s of spam blocking)";
 };
 
 

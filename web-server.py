@@ -1,6 +1,7 @@
 import sys
 import json
 import asyncio
+import time
 
 from aiohttp import web
 import logging
@@ -62,6 +63,7 @@ class WebInterface:
     async def translate(self, req):
         if not LOADED:
             return make_json_response({"error": "Network not loaded. Please contact coral if this happens."}, status=500)
+
         ip, port = req.transport.get_extra_info("peername")
         if ip in self.currently_blocked_users:
             logging.info(f"Too many requests for {ip}")
@@ -72,6 +74,8 @@ class WebInterface:
             await asyncio.sleep(1)
 
             data = await req.json()
+
+            start = time.time()
 
             bpe = PRIM_GL.str_to_bpe(data["input"])
             xs = torch.LongTensor([bpe])
@@ -113,8 +117,10 @@ class WebInterface:
             else:
                 out = "".join(hy_words) + "..."
 
-            logging.info(f"Got {repr(out)}, conf = {confidence}")
-            return make_json_response({"result": out, "confidence": confidence})
+            end = time.time()
+            took = end - start
+            logging.info(f"Got {repr(out)}, conf = {confidence}. Took {took} seconds")
+            return make_json_response({"result": out, "confidence": confidence, "duration": took})
         finally:
             self.currently_blocked_users.remove(ip)
 
