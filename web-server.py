@@ -8,18 +8,6 @@ import logging
 import torch
 import numpy as np
 
-try:
-    from sentence_parser import STYPE_SEC, STYPE_AUX, PRIM_GL, SEC_GL, AUX_GL
-    from network import into_one_hot, generate_batch, load_from_save
-
-    enc, sec_dec, aux_dec, *_ = load_from_save()
-
-    LOADED = True
-except:
-    print("No cache loaded :(")
-
-    LOADED = False
-
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(message)s",
@@ -31,6 +19,18 @@ logging.basicConfig(
 
 
 logging.info("started")
+
+try:
+    from sentence_parser import STYPE_SEC, STYPE_AUX, PRIM_GL, SEC_GL, AUX_GL
+    from network import into_one_hot, generate_batch, load_from_save
+
+    enc, sec_dec, aux_dec, *_ = load_from_save()
+
+    LOADED = True
+except FileNotFoundError as e:
+    logging.warning(f"Network not loaded: {e}")
+
+    LOADED = False
 
 def make_json_response(data, status=200):
     return web.Response(
