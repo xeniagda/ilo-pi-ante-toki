@@ -10,15 +10,15 @@ import numpy as np
 
 try:
     from sentence_parser import STYPE_SEC, STYPE_AUX, PRIM_GL, SEC_GL, AUX_GL
+    from network import into_one_hot, generate_batch, load_from_save
+
+    enc, sec_dec, aux_dec, *_ = load_from_save()
+
+    LOADED = True
 except:
     print("No cache loaded :(")
-    exit()
 
-from network import into_one_hot, generate_batch, load_from_save
-
-
-enc, sec_dec, aux_dec, *_ = load_from_save()
-
+    LOADED = False
 
 logging.basicConfig(
     level=logging.INFO,
@@ -60,6 +60,8 @@ class WebInterface:
         )
 
     async def translate(self, req):
+        if not LOADED:
+            return make_json_response({"error": "network not loaded"}, status=500)
         ip, port = req.transport.get_extra_info("peername")
         if ip in self.currently_blocked_users:
             logging.info(f"Too many requests for {ip}")
