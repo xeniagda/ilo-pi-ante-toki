@@ -108,6 +108,7 @@ class GramList:
 
     def str_to_bpe(self, st):
         # convert into tokens
+        st = st.lower()
         bpe = []
         for ch in st:
             found = False
