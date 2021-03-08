@@ -45,20 +45,9 @@ class WebInterface:
     def __init__(self, app):
         self.app = app
 
-        app.router.add_post("/api/translate", self.translate)
-
-        app.router.add_get("/", self.index)
-
-        app.router.add_static("/", 'static')
+        app.router.add_post("/ilo-pi-ante-toki/api/translate", self.translate)
 
         self.currently_blocked_users = set()
-
-    async def index(self, req):
-        return web.Response(
-            body=open("static/index.html", "r").read(),
-            content_type='text/html',
-            status=200,
-        )
 
     async def translate(self, req):
         if not LOADED:

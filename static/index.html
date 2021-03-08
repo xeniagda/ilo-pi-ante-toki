@@ -75,7 +75,7 @@ document.getElementById("do-the-thing").onclick = async (e) => {
 
     let conf_boost = conf.value;
 
-    let res = await fetch('api/translate', {
+    let res = await fetch('/ilo-pi-ante-toki/api/translate', {
         method: 'POST',
         body: JSON.stringify({
             "input": data,
