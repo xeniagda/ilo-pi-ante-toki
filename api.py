@@ -45,7 +45,7 @@ class WebInterface:
     def __init__(self, app):
         self.app = app
 
-        app.router.add_post("/ilo-pi-ante-toki/api/translate", self.translate)
+        app.router.add_post("/translate", self.translate)
 
         self.currently_blocked_users = set()
 
