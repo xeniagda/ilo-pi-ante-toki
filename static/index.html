@@ -122,6 +122,7 @@ document.getElementById("do-the-thing").onclick = async (e) => {
     document.getElementById("time").innerText = "";
 
     document.getElementById("working").style.display = "block";
+    document.getElementById("out").style.display = "none";
 
     let last_ch = inp_field.value[inp_field.value.length - 1];
     if (last_ch != '.' && last_ch != '?' && last_ch != '!') {
