@@ -3,57 +3,104 @@
         <title> ilo pi ante toki </title>
         <style>
 body {
-    font-family: monospace;
+    font-family: Arial;
     font-size: 14px;
-    padding: 3em;
-    background: black;
-    color: #cccccc;
+    padding: 7em;
+    background: #2F2230;
+    color: #CFC1A5;
 }
-p {
+.eng {
+    color: #836071;
+}
+.eng::before { margin-left: 1em; margin-right: 0.3em; content: "["; }
+.eng::after { margin-left: 0.3em; content: "]"; }
+#output {
     font-family: arial;
-    background: teal;
+    background: #BB8783;
     width: 10em;
     padding: 1em;
     border-radius: 1em;
+    color: #2F2230;
+    margin-left: 2em;
 }
-#out {
-    padding: 1em;
+#in {
+    padding-bottom: 10ex;
+}
+#out, #working {
+    padding-bottom: 10ex;
 }
 #error {
     color: red;
 }
 a {
-    color: #ccccff;
+    color: #DBD4C4;
+}
+
+input {
+    background: #836071;
+    padding: 1em;
+    border-radius: 0.5em;
+    border: 2px solid #BB8783;
+    margin-top: 0.5em;
+    margin-bottom: 1em;
+    color: white;
+}
+button {
+    background: #F3F0E2;
+    padding: 1em;
+    border-radius: 0.5em;
+    border: 2px solid #BB8783;
+}
+button:hover {
+    background: #DBD4C4;
+}
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+    /* display: none; <- Crashes Chrome on hover */
+    -webkit-appearance: none;
+    margin: 0; /* <-- Apparently some margin are still there even though it's hidden */
+}
+
+input[type=number] {
+    -moz-appearance:textfield; /* Firefox */
 }
         </style>
     </head>
 
     <body>
-        <h3> hello and welcome to ijo-pi-ante-toki. this is a thing of language changement. </h3>
-        <br />
-        type text to change here:
-        <input id="inp" type="text" placeholder="life is good"> </input>
-        <br />
-        <label for="confidence-boost">confidence boost:</label>
-        <input id="confidence-boost" type="number" step="0.1" value="1" min="-3" max="3"> </input>
-        <button id="do-the-thing"> press me to change the language </button>
+        <h2> ilo pi ante toki <span class="eng">language changing tool</span> </h2>
+        <div id="in">
+            <label for="inp"> o sitelen e nimi pi toki Inli: <span class="eng">type an english sentence</span> </label>
+            <br />
+            <input id="inp" type="text" placeholder="life is good"> </input>
+            <br />
+            <label for="confidence-boost">nanpa pona: <span class="eng">improvement number (confidence boost for the neural network)</span></label>
+            <br />
+            <input id="confidence-boost" type="number" value="1" min="-3" max="3"> </input>
+            <br />
+            <button id="do-the-thing"> o anti e toki! <span class="eng">change the language</span></button>
+        </div>
 
-        <div id="out">
-            your phrase but in toki pona (hopefully):
+        <h3 id="working" style="display: none;"> pali... <span class="eng"> working </span> </h3>
+
+        <div id="out" style="display: none;">
+            nimi pi toki pona: <span class="eng">words in toki pona</span>
             <p id="output"></p>
             <pre id="confidence"></pre>
             <pre id="time"></pre>
             <pre id="error"></pre>
         </div>
 
-        pro tips:
-        <ul>
-            <li> end your sentences with a period </li>
-            <li> for names, use Tom or Mary (jan ton / jan mewi in toki pona) </li>
-            <li> it takes ~1s for every request to be processed. please no spam </li>
-        </ul>
+        <div id="help">
+            pro tips:
+            <ul>
+                <li> end your sentences with a period </li>
+                <li> for names, use Tom or Mary (jan ton / jan mewi in toki pona) </li>
+                <li> every request has a one second cool down, so don't spam the system </li>
+            </ul>
+        </div>
 
-        source available at <a href="https://github.com/loovjo/ilo-pi-ante-toki">github</a>
+        source available at <a href="https://github.com/loovjo/ilo-pi-ante-toki">github</a>. please give a star :)
     </body>
 
     <script>
@@ -66,6 +113,8 @@ document.getElementById("do-the-thing").onclick = async (e) => {
     document.getElementById("output").innerText = "";
     document.getElementById("confidence").innerText = "";
     document.getElementById("time").innerText = "";
+
+    document.getElementById("working").style.display = "block";
 
     let last_ch = inp_field.value[inp_field.value.length - 1];
     if (last_ch != '.' && last_ch != '?' && last_ch != '!') {
@@ -91,9 +140,12 @@ document.getElementById("do-the-thing").onclick = async (e) => {
     }
 
     document.getElementById("output").innerText = json.result;
-    document.getElementById("confidence").innerText = "Confidence: " + json.confidence;
-    document.getElementById("time").innerText = "Translation took: " + json.duration +
+    document.getElementById("confidence").innerText = "confidence: " + json.confidence;
+    document.getElementById("time").innerText = "translation took: " + json.duration +
         " seconds (+1s of spam blocking)";
+
+    document.getElementById("working").style.display = "none";
+    document.getElementById("out").style.display = "block";
 };
 
 
